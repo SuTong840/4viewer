@@ -91,7 +91,22 @@ void MainWindow::setupViews()
     int* dimensions = imageData->GetDimensions();
     int numSlices = dimensions[2];
     int midSlice = numSlices / 2;
+//    int numSlicesAxial = dimensions[2];
+//    int numSlicesSagittal = dimensions[0];
+//    int numSlicesCoronal = dimensions[1];
 
+//    int midSliceAxial = numSlicesAxial / 2;
+//    int midSliceSagittal = numSlicesSagittal / 2;
+//    int midSliceCoronal = numSlicesCoronal / 2;
+//    // 设置滑动条的范围
+    ui->slider_Axial->setRange(0, 448);
+    ui->slider_Axial->setValue(0);
+
+    ui->slider_Sagittal->setRange(0, 512);
+    ui->slider_Sagittal->setValue(0);
+
+    ui->slider_Coronal->setRange(0, 512);
+    ui->slider_Coronal->setValue(0);
     // 设置轴位（Axial）视图
     axialViewer->SetInputData(imageData);
     axialViewer->SetSliceOrientationToXY();
@@ -114,7 +129,6 @@ void MainWindow::setupViews()
     vtkSmartPointer<vtkInteractorStyleImage> styleSagittal = vtkSmartPointer<vtkInteractorStyleImage>::New();
     ui->win_Sagittal->renderWindow()->GetInteractor()->SetInteractorStyle(styleSagittal);
 
-    // 设置冠状位（Coronal）视图
 
     // 设置冠状位（Coronal）视图
     coronalViewer->SetInputData(imageData);
@@ -234,5 +248,38 @@ void MainWindow::addPointTo3DView(double x, double y, double z)
     actor->GetProperty()->SetColor(0.0, 0.0, 1.0);  // Blue for 3D
 
     renderer3D->AddActor(actor);
+    ui->win_3D->renderWindow()->Render();
+}
+
+void MainWindow::on_slider_Axial_valueChanged(int value)
+{
+    // 更新Axial视图的切片
+    axialViewer->SetSlice(value);
+    axialViewer->Render();
+
+    // 同步更新3D视图中的X平面切片
+    planeWidgetZ->SetSliceIndex(value);
+    ui->win_3D->renderWindow()->Render();
+}
+
+void MainWindow::on_slider_Sagittal_valueChanged(int value)
+{
+    // 更新Sagittal视图的切片
+    sagittalViewer->SetSlice(value);
+    sagittalViewer->Render();
+
+    // 同步更新3D视图中的Y平面切片
+    planeWidgetX->SetSliceIndex(value);
+    ui->win_3D->renderWindow()->Render();
+}
+
+void MainWindow::on_slider_Coronal_valueChanged(int value)
+{
+    // 更新Coronal视图的切片
+    coronalViewer->SetSlice(value);
+    coronalViewer->Render();
+
+    // 同步更新3D视图中的Z平面切片
+    planeWidgetY->SetSliceIndex(value);
     ui->win_3D->renderWindow()->Render();
 }

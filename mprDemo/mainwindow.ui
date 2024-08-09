@@ -15,6 +15,12 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="QVTKOpenGLNativeWidget" name="win_Axial"/>
+    </item>
+    <item row="1" column="1">
+     <widget class="QVTKOpenGLNativeWidget" name="win_Sagittal"/>
+    </item>
     <item row="0" column="0">
      <widget class="QPushButton" name="btn_point">
       <property name="text">
@@ -22,17 +28,32 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="0">
-     <widget class="QVTKOpenGLNativeWidget" name="win_Axial"/>
-    </item>
-    <item row="1" column="1">
-     <widget class="QVTKOpenGLNativeWidget" name="win_Sagittal"/>
-    </item>
-    <item row="2" column="0">
-     <widget class="QVTKOpenGLNativeWidget" name="win_Coronal"/>
+    <item row="3" column="1">
+     <widget class="QVTKOpenGLNativeWidget" name="win_3D"/>
     </item>
     <item row="2" column="1">
-     <widget class="QVTKOpenGLNativeWidget" name="win_3D"/>
+     <widget class="QSlider" name="slider_Sagittal">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QVTKOpenGLNativeWidget" name="win_Coronal"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QSlider" name="slider_Axial">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QSlider" name="slider_Coronal">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

@@ -40,6 +40,12 @@ private slots:
 
     void on_btn_point_clicked();
 
+    void on_slider_Axial_valueChanged(int value);
+
+    void on_slider_Sagittal_valueChanged(int value);
+
+    void on_slider_Coronal_valueChanged(int value);
+
 private:
     Ui::MainWindow *ui;
 
