@@ -1,23 +1,26 @@
-#ifndef CROSSHAIRCALLBACK_H
-#define CROSSHAIRCALLBACK_H
+//#ifndef CROSSHAIRCALLBACK_H
+//#define CROSSHAIRCALLBACK_H
 
-#include <vtkCommand.h>
-#include <vtkSmartPointer.h>
-#include <vtkImageViewer2.h>
+//#include <vtkCommand.h>
+//#include <vtkSmartPointer.h>
 
-class CrosshairCallback : public vtkCommand
-{
-public:
-    static CrosshairCallback *New()
-    {
-        return new CrosshairCallback;
-    }
+//class vtkRenderer;
+//class vtkRenderWindow;
 
-    void Execute(vtkObject *caller, unsigned long eventId, void* callData) override;
-    void SetImageViewer(vtkImageViewer2* viewer[3]);
+//class CrosshairCallback : public vtkCommand
+//{
+//public:
+//    static CrosshairCallback* New();
+//    vtkTypeMacro(CrosshairCallback, vtkCommand);
 
-private:
-    vtkImageViewer2* imageViewer[3];
-};
+//    void Execute(vtkObject* caller, unsigned long eventId, void* callData) override;
 
-#endif // CROSSHAIRCALLBACK_H
+//    void SetRenderer(vtkSmartPointer<vtkRenderer> ren);
+//    void SetRenderWindow(vtkSmartPointer<vtkRenderWindow> rw);
+
+//private:
+//    vtkSmartPointer<vtkRenderer> renderer;
+//    vtkSmartPointer<vtkRenderWindow> renderWindow;
+//};
+
+//#endif // CROSSHAIRCALLBACK_H
