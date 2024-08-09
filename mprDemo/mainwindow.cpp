@@ -39,9 +39,13 @@ public:
 
         double pickedPosition[3];
         picker->GetPickPosition(pickedPosition);
-
+        // 输出调试信息
+           qDebug() << "Picked position: (X:" << pickedPosition[0]
+                    << ", Y:" << pickedPosition[1]
+                    << ", Z:" << pickedPosition[2] << ")";
         if (mainWindow)
         {
+            mainWindow->addPointToAxialView(pickedPosition[0], pickedPosition[1], pickedPosition[2]);
             mainWindow->addPointToSagittalView(pickedPosition[0], pickedPosition[1], pickedPosition[2]);
             mainWindow->addPointToCoronalView(pickedPosition[0], pickedPosition[1], pickedPosition[2]);
             mainWindow->addPointTo3DView(pickedPosition[0], pickedPosition[1], pickedPosition[2]);
@@ -185,7 +189,7 @@ void MainWindow::setupPlaneWidget(vtkSmartPointer<vtkImagePlaneWidget>& planeWid
     planeWidget->SetResliceInterpolateToLinear();
     planeWidget->SetInputData(imageData);
     planeWidget->SetPlaneOrientation(orientation);
-    planeWidget->SetSliceIndex(imageData->GetDimensions()[orientation] / 2);
+    planeWidget->SetSliceIndex(0);
     planeWidget->On();
 
     qDebug() << "Plane widget setup completed for orientation:" << orientation;
@@ -200,11 +204,28 @@ void MainWindow::on_btn_point_clicked()
     ui->win_Sagittal->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, pointCallback);
     ui->win_Coronal->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, pointCallback);
 }
+void MainWindow::addPointToAxialView(double x, double y, double z)
+{
+    vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+    sphereSource->SetCenter(x, y, z);
+    sphereSource->SetRadius(10);
+
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputConnection(sphereSource->GetOutputPort());
+
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetColor(0.0, 0.0, 1.0);  // Blue for Axial
+
+    axialViewer->GetRenderer()->AddActor(actor);
+    axialViewer->Render();
+}
+
 void MainWindow::addPointToSagittalView(double x, double y, double z)
 {
     vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
     sphereSource->SetCenter(x, y, z);
-    sphereSource->SetRadius(3.0);
+    sphereSource->SetRadius(10);
 
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputConnection(sphereSource->GetOutputPort());
@@ -221,7 +242,7 @@ void MainWindow::addPointToCoronalView(double x, double y, double z)
 {
     vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
     sphereSource->SetCenter(x, y, z);
-    sphereSource->SetRadius(3.0);
+    sphereSource->SetRadius(10);
 
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputConnection(sphereSource->GetOutputPort());

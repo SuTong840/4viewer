@@ -36,6 +36,7 @@ public:
     void addPointToSagittalView(double x, double y, double z);
     void addPointToCoronalView(double x, double y, double z);
     void addPointTo3DView(double x, double y, double z);
+    void addPointToAxialView(double x, double y, double z);
 private slots:
 
     void on_btn_point_clicked();
