@@ -1,15 +1,57 @@
-#include "MainWindow.h"
-#include "ui_MainWindow.h"
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 #include <vtkDICOMImageReader.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkInteractorStyleImage.h>
 #include <vtkImagePlaneWidget.h>
-#include <vtkProperty.h>
 #include <vtkImageViewer2.h>
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
+#include <vtkPointPicker.h>
+#include <vtkActor.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkSphereSource.h>
+#include <vtkProperty.h>
+#include <vtkRendererCollection.h>
+// 回调函数类，用于处理鼠标点击事件
+class PointPickerCallback : public vtkCommand
+{
+public:
+    static PointPickerCallback* New()
+    {
+        return new PointPickerCallback;
+    }
+
+    void Execute(vtkObject* caller, unsigned long eventId, void* callData) override
+    {
+        vtkRenderWindowInteractor* interactor = static_cast<vtkRenderWindowInteractor*>(caller);
+        vtkRenderer* renderer = interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
+
+        // 使用PointPicker来拾取点
+        vtkSmartPointer<vtkPointPicker> picker = vtkSmartPointer<vtkPointPicker>::New();
+        picker->Pick(interactor->GetEventPosition()[0], interactor->GetEventPosition()[1], 0, renderer);
+
+        double pickedPosition[3];
+        picker->GetPickPosition(pickedPosition);
+
+        // 创建一个球体来表示点
+        vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+        sphereSource->SetCenter(pickedPosition);
+        sphereSource->SetRadius(10); // 点的大小
+
+        vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+        mapper->SetInputConnection(sphereSource->GetOutputPort());
+
+        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+        actor->SetMapper(mapper);
+        actor->GetProperty()->SetColor(1.0, 0.0, 0.0); // 设置点的颜色为红色
+
+        renderer->AddActor(actor);
+        renderer->GetRenderWindow()->Render();
+    }
+};
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -31,64 +73,61 @@ MainWindow::~MainWindow()
 
 void MainWindow::loadDicom()
 {
-    QString dicomPath = "E:/Data/Dicom/volume-325"; // Update this path as needed
+    QString dicomPath = "E:/Data/Dicom/volume-325"; // 根据需要更新此路径
     dicomReader->SetDirectoryName(dicomPath.toStdString().c_str());
     dicomReader->Update();
 }
 
 void MainWindow::setupViews()
 {
-    loadDicom(); // Load the DICOM files first
+    loadDicom(); // 首先加载DICOM文件
 
     vtkImageData* imageData = dicomReader->GetOutput();
 
-    // Set up the Axial view
+    // 设置轴位（Axial）视图
     axialViewer->SetInputData(imageData);
     axialViewer->SetSliceOrientationToXY();
     axialViewer->SetRenderWindow(ui->win_Axial->renderWindow());
+    axialViewer->SetSlice(0); // 设置初始切片
+    axialViewer->GetRenderer()->ResetCamera();
+    axialViewer->GetRenderer()->GetActiveCamera()->SetViewUp(0, 1, 0); // 使视图方向正确
     axialViewer->Render();
 
-    // Set up the Sagittal view
+    // 设置矢状位（Sagittal）视图
     sagittalViewer->SetInputData(imageData);
     sagittalViewer->SetSliceOrientationToYZ();
     sagittalViewer->SetRenderWindow(ui->win_Sagittal->renderWindow());
+    sagittalViewer->SetSlice(0); // 设置初始切片
+    sagittalViewer->GetRenderer()->ResetCamera();
+    sagittalViewer->GetRenderer()->GetActiveCamera()->SetViewUp(0, 1, 0); // 使视图方向正确
     sagittalViewer->Render();
 
-    // Set up the Coronal view
+    // 设置冠状位（Coronal）视图
     coronalViewer->SetInputData(imageData);
     coronalViewer->SetSliceOrientationToXZ();
     coronalViewer->SetRenderWindow(ui->win_Coronal->renderWindow());
+    coronalViewer->SetSlice(0); // 设置初始切片
+    coronalViewer->GetRenderer()->ResetCamera();
+    coronalViewer->GetRenderer()->GetActiveCamera()->SetViewUp(0, 1, 0); // 使视图方向正确
     coronalViewer->Render();
 
-    // Set up the 3D view with orthogonal slices
-//    ui->win_3D->renderWindow()->AddRenderer(renderer3D);
-//    ui->win_3D->renderWindow()->SetInteractor(interactor3D);
+    // 启用交互器
+    ui->win_Axial->renderWindow()->GetInteractor()->Initialize();
+    ui->win_Sagittal->renderWindow()->GetInteractor()->Initialize();
+    ui->win_Coronal->renderWindow()->GetInteractor()->Initialize();
+}
 
-//    vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-//    interactor3D->SetInteractorStyle(style);
+void MainWindow::on_btn_point_clicked()
+{
+    // 为三个视图窗口添加鼠标点击事件处理
+    vtkSmartPointer<PointPickerCallback> pointCallback = vtkSmartPointer<PointPickerCallback>::New();
 
-//    // Configure the plane widgets
-//    planeWidgetX->SetInteractor(interactor3D);
-//    planeWidgetX->SetInputData(imageData);
-//    planeWidgetX->SetPlaneOrientationToXAxes();
-//    planeWidgetX->SetSliceIndex(imageData->GetDimensions()[0] / 2);
-//    planeWidgetX->GetPlaneProperty()->SetColor(1, 0, 0); // Red
-//    planeWidgetX->On();
+    // Axial 视图
+    ui->win_Axial->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, pointCallback);
 
-//    planeWidgetY->SetInteractor(interactor3D);
-//    planeWidgetY->SetInputData(imageData);
-//    planeWidgetY->SetPlaneOrientationToYAxes();
-//    planeWidgetY->SetSliceIndex(imageData->GetDimensions()[1] / 2);
-//    planeWidgetY->GetPlaneProperty()->SetColor(0, 1, 0); // Green
-//    planeWidgetY->On();
+    // Sagittal 视图
+    ui->win_Sagittal->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, pointCallback);
 
-//    planeWidgetZ->SetInteractor(interactor3D);
-//    planeWidgetZ->SetInputData(imageData);
-//    planeWidgetZ->SetPlaneOrientationToZAxes();
-//    planeWidgetZ->SetSliceIndex(imageData->GetDimensions()[2] / 2);
-//    planeWidgetZ->GetPlaneProperty()->SetColor(0, 0, 1); // Blue
-//    planeWidgetZ->On();
-
-//    ui->win_3D->renderWindow()->Render();
-//    interactor3D->Start();
+    // Coronal 视图
+    ui->win_Coronal->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, pointCallback);
 }

@@ -10,6 +10,8 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkCamera.h>
+#include <vtkProperty.h>
 
 namespace Ui {
 class MainWindow;
@@ -22,9 +24,13 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
     void loadDicom();
     void setupViews();
+
+private slots:
+
+
+    void on_btn_point_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -37,8 +43,6 @@ private:
     vtkSmartPointer<vtkImagePlaneWidget> planeWidgetY;
     vtkSmartPointer<vtkImagePlaneWidget> planeWidgetZ;
 
-    vtkSmartPointer<vtkRenderer> renderer3D;
-    vtkSmartPointer<vtkRenderWindowInteractor> interactor3D;
 };
 
 #endif // MAINWINDOW_H
