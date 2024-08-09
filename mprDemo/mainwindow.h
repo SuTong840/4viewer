@@ -33,7 +33,9 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
+    void addPointToSagittalView(double x, double y, double z);
+    void addPointToCoronalView(double x, double y, double z);
+    void addPointTo3DView(double x, double y, double z);
 private slots:
 
     void on_btn_point_clicked();
@@ -53,6 +55,8 @@ private:
     void loadDicom();
     void setupViews();
     void  setup3DView(vtkImageData* imageData);
+
+
 };
 
 #endif // MAINWINDOW_H

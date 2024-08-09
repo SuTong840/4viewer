@@ -24,9 +24,13 @@ public:
         return new PointPickerCallback;
     }
 
+    void SetMainWindow(MainWindow* window)
+    {
+        this->mainWindow = window;
+    }
+
     void Execute(vtkObject* caller, unsigned long eventId, void* callData) override
     {
-        qDebug() << "Point picking callback executed";
         vtkRenderWindowInteractor* interactor = static_cast<vtkRenderWindowInteractor*>(caller);
         vtkRenderer* renderer = interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
 
@@ -36,24 +40,16 @@ public:
         double pickedPosition[3];
         picker->GetPickPosition(pickedPosition);
 
-        qDebug() << "Picked position: (X:" << pickedPosition[0]
-                 << ", Y:" << pickedPosition[1]
-                 << ", Z:" << pickedPosition[2] << ")";
-
-        vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
-        sphereSource->SetCenter(pickedPosition);
-        sphereSource->SetRadius(10);
-
-        vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-        mapper->SetInputConnection(sphereSource->GetOutputPort());
-
-        vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-        actor->SetMapper(mapper);
-        actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-
-        renderer->AddActor(actor);
-        renderer->GetRenderWindow()->Render();
+        if (mainWindow)
+        {
+            mainWindow->addPointToSagittalView(pickedPosition[0], pickedPosition[1], pickedPosition[2]);
+            mainWindow->addPointToCoronalView(pickedPosition[0], pickedPosition[1], pickedPosition[2]);
+            mainWindow->addPointTo3DView(pickedPosition[0], pickedPosition[1], pickedPosition[2]);
+        }
     }
+
+private:
+    MainWindow* mainWindow = nullptr;
 };
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -183,15 +179,60 @@ void MainWindow::setupPlaneWidget(vtkSmartPointer<vtkImagePlaneWidget>& planeWid
 
 void MainWindow::on_btn_point_clicked()
 {
-    qDebug() << "Point button clicked";
-
     vtkSmartPointer<PointPickerCallback> pointCallback = vtkSmartPointer<PointPickerCallback>::New();
+    pointCallback->SetMainWindow(this);
 
     ui->win_Axial->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, pointCallback);
     ui->win_Sagittal->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, pointCallback);
     ui->win_Coronal->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, pointCallback);
+}
+void MainWindow::addPointToSagittalView(double x, double y, double z)
+{
+    vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+    sphereSource->SetCenter(x, y, z);
+    sphereSource->SetRadius(3.0);
 
-    ui->win_Axial->renderWindow()->Render();
-    ui->win_Sagittal->renderWindow()->Render();
-    ui->win_Coronal->renderWindow()->Render();
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputConnection(sphereSource->GetOutputPort());
+
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+
+    sagittalViewer->GetRenderer()->AddActor(actor);
+    sagittalViewer->Render();
+}
+
+void MainWindow::addPointToCoronalView(double x, double y, double z)
+{
+    vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+    sphereSource->SetCenter(x, y, z);
+    sphereSource->SetRadius(3.0);
+
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputConnection(sphereSource->GetOutputPort());
+
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetColor(0.0, 1.0, 0.0);  // Green for Coronal
+
+    coronalViewer->GetRenderer()->AddActor(actor);
+    coronalViewer->Render();
+}
+
+void MainWindow::addPointTo3DView(double x, double y, double z)
+{
+    vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+    sphereSource->SetCenter(x, y, z);
+    sphereSource->SetRadius(10);
+
+    vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputConnection(sphereSource->GetOutputPort());
+
+    vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetColor(0.0, 0.0, 1.0);  // Blue for 3D
+
+    renderer3D->AddActor(actor);
+    ui->win_3D->renderWindow()->Render();
 }
