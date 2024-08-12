@@ -40,15 +40,55 @@ public:
         double pickedPosition[3];
         picker->GetPickPosition(pickedPosition);
         // 输出调试信息
-           qDebug() << "Picked position: (X:" << pickedPosition[0]
-                    << ", Y:" << pickedPosition[1]
-                    << ", Z:" << pickedPosition[2] << ")";
+                 qDebug() << "Picked position: (X:" << pickedPosition[0]
+                          << ", Y:" << pickedPosition[1]
+                          << ", Z:" << pickedPosition[2] << ")";
         if (mainWindow)
         {
+            // 添加点到三视图和3D视图
             mainWindow->addPointToAxialView(pickedPosition[0], pickedPosition[1], pickedPosition[2]);
             mainWindow->addPointToSagittalView(pickedPosition[0], pickedPosition[1], pickedPosition[2]);
             mainWindow->addPointToCoronalView(pickedPosition[0], pickedPosition[1], pickedPosition[2]);
             mainWindow->addPointTo3DView(pickedPosition[0], pickedPosition[1], pickedPosition[2]);
+
+            // 获取当前图像数据的维度和体素尺寸
+              vtkImageData* imageData = mainWindow->dicomReader->GetOutput();
+              int* dimensions = imageData->GetDimensions();
+              double* spacing = imageData->GetSpacing(); // 获取体素尺寸
+
+              // 计算各个视图的切片索引
+              int axialSlice = std::round(pickedPosition[2] / spacing[2]);    // Z轴切片索引
+              int sagittalSlice = std::round(pickedPosition[0] / spacing[0]); // X轴切片索引
+              int coronalSlice = std::round(pickedPosition[1] / spacing[1]);  // Y轴切片索引
+
+            // 限制切片索引在合法范围内
+            axialSlice = std::clamp(axialSlice, 0, dimensions[2] - 1);
+            sagittalSlice = std::clamp(sagittalSlice, 0, dimensions[0] - 1);
+            coronalSlice = std::clamp(coronalSlice, 0, dimensions[1] - 1);
+
+            // 使用 qDebug 输出每个视图的当前切片索引
+            qDebug() << "Axial View Slice Index:" << axialSlice;
+            qDebug() << "Sagittal View Slice Index:" << sagittalSlice;
+            qDebug() << "Coronal View Slice Index:" << coronalSlice;
+            // 同步更新滑动条的数值
+            mainWindow->ui->slider_Axial->setValue(axialSlice);
+            mainWindow->ui->slider_Sagittal->setValue(sagittalSlice);
+            mainWindow->ui->slider_Coronal->setValue(coronalSlice);
+            // 更新切片位置
+            mainWindow->axialViewer->SetSlice(axialSlice);
+            mainWindow->sagittalViewer->SetSlice(sagittalSlice);
+            mainWindow->coronalViewer->SetSlice(coronalSlice);
+
+            // 更新对应的3D视图中的平面切片
+            mainWindow->planeWidgetZ->SetSliceIndex(axialSlice);
+            mainWindow->planeWidgetX->SetSliceIndex(sagittalSlice);
+            mainWindow->planeWidgetY->SetSliceIndex(coronalSlice);
+
+            // 重新渲染视图
+            mainWindow->axialViewer->Render();
+            mainWindow->sagittalViewer->Render();
+            mainWindow->coronalViewer->Render();
+            mainWindow->ui->win_3D->renderWindow()->Render();
         }
     }
 
@@ -66,7 +106,22 @@ MainWindow::MainWindow(QWidget *parent) :
     sagittalViewer = vtkSmartPointer<vtkImageViewer2>::New();
     coronalViewer = vtkSmartPointer<vtkImageViewer2>::New();
     renderer3D = vtkSmartPointer<vtkRenderer>::New();
+    // 连接 checkbox 和 slider 的变化事件
 
+    connect(ui->slider_Axial, &QSlider::valueChanged, this, &MainWindow::on_slider_Axial_valueChanged);
+    connect(ui->slider_Sagittal, &QSlider::valueChanged, this, &MainWindow::on_slider_Sagittal_valueChanged);
+    connect(ui->slider_Coronal, &QSlider::valueChanged, this, &MainWindow::on_slider_Coronal_valueChanged);
+
+    //三视图滑动条和spinbox
+    // Connect slider and spinbox signals and slots
+    connect(ui->slider_Axial, &QSlider::valueChanged, ui->spinBox_Axial, &QSpinBox::setValue);
+    connect(ui->spinBox_Axial, QOverload<int>::of(&QSpinBox::valueChanged), ui->slider_Axial, &QSlider::setValue);
+
+    connect(ui->slider_Sagittal, &QSlider::valueChanged, ui->spinBox_Sagittal, &QSpinBox::setValue);
+    connect(ui->spinBox_Sagittal, QOverload<int>::of(&QSpinBox::valueChanged), ui->slider_Sagittal, &QSlider::setValue);
+
+    connect(ui->slider_Coronal, &QSlider::valueChanged, ui->spinBox_Coronal, &QSpinBox::setValue);
+    connect(ui->spinBox_Coronal, QOverload<int>::of(&QSpinBox::valueChanged), ui->slider_Coronal, &QSlider::setValue);
     setupViews();
 }
 
@@ -91,6 +146,11 @@ void MainWindow::setupViews()
         qDebug() << "Failed to load image data";
         return;
     }
+    // 获取体素间距
+    double spacing[3];
+    imageData->GetSpacing(spacing);
+    // 输出体素间距以供调试
+    qDebug() << "Voxel Spacing体素距离: (X:" << spacing[0] << ", Y:" << spacing[1] << ", Z:" << spacing[2] << ")";
 
     int* dimensions = imageData->GetDimensions();
     int numSlices = dimensions[2];
@@ -281,6 +341,7 @@ void MainWindow::on_slider_Axial_valueChanged(int value)
     // 同步更新3D视图中的X平面切片
     planeWidgetZ->SetSliceIndex(value);
     ui->win_3D->renderWindow()->Render();
+
 }
 
 void MainWindow::on_slider_Sagittal_valueChanged(int value)
@@ -304,3 +365,4 @@ void MainWindow::on_slider_Coronal_valueChanged(int value)
     planeWidgetY->SetSliceIndex(value);
     ui->win_3D->renderWindow()->Render();
 }
+

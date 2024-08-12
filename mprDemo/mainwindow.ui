@@ -15,34 +15,21 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
-     <widget class="QVTKOpenGLNativeWidget" name="win_Axial"/>
-    </item>
-    <item row="1" column="1">
-     <widget class="QVTKOpenGLNativeWidget" name="win_Sagittal"/>
-    </item>
-    <item row="0" column="0">
-     <widget class="QPushButton" name="btn_point">
-      <property name="text">
-       <string>画点</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QVTKOpenGLNativeWidget" name="win_3D"/>
-    </item>
-    <item row="2" column="1">
-     <widget class="QSlider" name="slider_Sagittal">
+    <item row="2" column="0">
+     <widget class="QSlider" name="slider_Axial">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
-     <widget class="QVTKOpenGLNativeWidget" name="win_Coronal"/>
+    <item row="1" column="2">
+     <widget class="QVTKOpenGLNativeWidget" name="win_Sagittal"/>
     </item>
-    <item row="2" column="0">
-     <widget class="QSlider" name="slider_Axial">
+    <item row="3" column="2">
+     <widget class="QVTKOpenGLNativeWidget" name="win_3D"/>
+    </item>
+    <item row="2" column="2">
+     <widget class="QSlider" name="slider_Sagittal">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -52,6 +39,40 @@
      <widget class="QSlider" name="slider_Coronal">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QSpinBox" name="spinBox_Axial">
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QSpinBox" name="spinBox_Sagittal">
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QVTKOpenGLNativeWidget" name="win_Axial"/>
+    </item>
+    <item row="4" column="1">
+     <widget class="QSpinBox" name="spinBox_Coronal">
+      <property name="maximum">
+       <number>1000</number>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QVTKOpenGLNativeWidget" name="win_Coronal"/>
+    </item>
+    <item row="0" column="0">
+     <widget class="QPushButton" name="btn_point">
+      <property name="text">
+       <string>画点</string>
       </property>
      </widget>
     </item>

@@ -10,6 +10,7 @@
 #include <vtkCamera.h>
 #include <vtkImagePlaneWidget.h>
 #include <QVTKOpenGLNativeWidget.h>
+#include <vtkResliceImageViewer.h>
 namespace Ui {
 class MainWindow;
 }
@@ -33,6 +34,15 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+      Ui::MainWindow *ui;
+    vtkSmartPointer<vtkImageViewer2> axialViewer;
+    vtkSmartPointer<vtkImageViewer2> sagittalViewer;
+    vtkSmartPointer<vtkImageViewer2> coronalViewer;
+    vtkSmartPointer<vtkRenderer> renderer3D;
+    vtkSmartPointer<vtkImagePlaneWidget> planeWidgetX;
+    vtkSmartPointer<vtkImagePlaneWidget> planeWidgetY;
+    vtkSmartPointer<vtkImagePlaneWidget> planeWidgetZ;
+    vtkSmartPointer<vtkDICOMImageReader> dicomReader;
     void addPointToSagittalView(double x, double y, double z);
     void addPointToCoronalView(double x, double y, double z);
     void addPointTo3DView(double x, double y, double z);
@@ -47,17 +57,11 @@ private slots:
 
     void on_slider_Coronal_valueChanged(int value);
 
-private:
-    Ui::MainWindow *ui;
 
-    vtkSmartPointer<vtkDICOMImageReader> dicomReader;
-    vtkSmartPointer<vtkImageViewer2> axialViewer;
-    vtkSmartPointer<vtkImageViewer2> sagittalViewer;
-    vtkSmartPointer<vtkImageViewer2> coronalViewer;
-    vtkSmartPointer<vtkRenderer> renderer3D;
-    vtkSmartPointer<vtkImagePlaneWidget> planeWidgetX;
-    vtkSmartPointer<vtkImagePlaneWidget> planeWidgetY;
-    vtkSmartPointer<vtkImagePlaneWidget> planeWidgetZ;
+private:
+    vtkSmartPointer<vtkResliceImageViewer> axialReslice;
+     vtkSmartPointer<vtkResliceImageViewer> coronalReslice;
+     vtkSmartPointer<vtkResliceImageViewer> sagittalReslice;
     void setupPlaneWidget(vtkSmartPointer<vtkImagePlaneWidget>& planeWidget, QVTKOpenGLNativeWidget* view, char activationKey, std::vector<double> color, vtkImageData* imageData, int orientation);
     void loadDicom();
     void setupViews();
